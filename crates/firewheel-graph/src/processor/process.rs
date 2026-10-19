@@ -98,6 +98,7 @@ impl FirewheelProcessorInner {
         self.clock_samples += DurationSamples(frames as i64);
 
         self.sync_shared_clock(
+            process_to_playback_delay,
             #[cfg(feature = "scheduled_events")]
             process_timestamp,
         );
@@ -663,6 +664,7 @@ impl FirewheelProcessorInner {
 
     pub fn sync_shared_clock(
         &mut self,
+        process_to_playback_delay: Option<Duration>,
         #[cfg(feature = "scheduled_events")] process_timestamp: Instant,
     ) {
         #[cfg(feature = "musical_transport")]
@@ -674,6 +676,7 @@ impl FirewheelProcessorInner {
 
         self.shared_clock_input.write(SharedClock {
             clock_samples: self.clock_samples,
+            process_to_playback_delay,
             #[cfg(feature = "scheduled_events")]
             update_instant: process_timestamp,
             #[cfg(feature = "musical_transport")]

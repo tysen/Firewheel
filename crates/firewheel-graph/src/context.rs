@@ -612,6 +612,21 @@ impl FirewheelContext {
         clock.clock_samples.0
     }
 
+    /// How long the latest processed block takes from processing to playback at the
+    /// output device, as the backend reports it (CPAL's callback-to-playback
+    /// timestamps, RtAudio's stream latency). `None` while the stream isn't running
+    /// or where the backend reports nothing.
+    pub fn process_to_playback_delay(&self) -> Option<Duration> {
+        // PANIC SAFETY: This struct is the only place this is ever borrowed, so this
+        // will never panic.
+        let mut clock_borrowed = self.shared_clock_output.borrow_mut();
+        let clock = clock_borrowed.read();
+
+        self.is_active()
+            .then_some(clock.process_to_playback_delay)
+            .flatten()
+    }
+
     /// Get the current time of the audio clock, without accounting for the delay
     /// between when the clock was last updated and now.
     ///

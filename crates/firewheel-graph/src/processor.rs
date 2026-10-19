@@ -269,6 +269,7 @@ pub(crate) struct ClearScheduledEventsEvent {
 #[derive(Clone)]
 pub(crate) struct SharedClock {
     pub clock_samples: InstantSamples,
+    pub process_to_playback_delay: Option<core::time::Duration>,
     #[cfg(feature = "scheduled_events")]
     pub update_instant: Instant,
     #[cfg(feature = "musical_transport")]
@@ -283,6 +284,7 @@ impl Default for SharedClock {
     fn default() -> Self {
         Self {
             clock_samples: InstantSamples(0),
+            process_to_playback_delay: None,
             #[cfg(feature = "scheduled_events")]
             update_instant: Instant::now(),
             #[cfg(feature = "musical_transport")]
