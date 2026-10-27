@@ -841,6 +841,7 @@ impl SamplerProcessor {
         range_in_buffer: Range<usize>,
         looping: bool,
     ) -> (bool, usize) {
+        let speed = self.speed;
         let Some(state) = self.loaded_sample_state.as_mut() else {
             return (true, 0);
         };
@@ -864,8 +865,14 @@ impl SamplerProcessor {
                         state.playhead_frames,
                     );
                 }
-                SamplerNodeResource::Streamed(_) => {
-                    todo!()
+                SamplerNodeResource::Streamed(sample) => {
+                    fill_streamed(
+                        &mut **sample,
+                        buffers,
+                        range_in_buffer.start..range_in_buffer.start + first_copy_frames,
+                        state.playhead_frames,
+                        speed,
+                    );
                 }
             }
 
@@ -890,8 +897,15 @@ impl SamplerProcessor {
                                 0,
                             );
                         }
-                        SamplerNodeResource::Streamed(_) => {
-                            todo!()
+                        SamplerNodeResource::Streamed(sample) => {
+                            fill_streamed(
+                                &mut **sample,
+                                buffers,
+                                range_in_buffer.start + frames_copied
+                                    ..range_in_buffer.start + frames_copied + copy_frames,
+                                0,
+                                speed,
+                            );
                         }
                     }
 
@@ -1418,4 +1432,19 @@ struct LoadedSampleState {
 struct StopDeclickerState {
     frames_left: usize,
     channels: usize,
+}
+
+/// Fill from a streamed resource; frames it doesn't have yet play as silence.
+fn fill_streamed(
+    sample: &mut dyn StreamedSample,
+    buffers: &mut [&mut [f32]],
+    range: Range<usize>,
+    start_frame: u64,
+    speed: f64,
+) {
+    let filled = sample.fill_buffers(buffers, range.clone(), start_frame, speed, false);
+    let channels = buffers.len().min(sample.num_channels().get());
+    for b in buffers[..channels].iter_mut() {
+        b[range.start + filled.min(range.len())..range.end].fill(0.0);
+    }
 }

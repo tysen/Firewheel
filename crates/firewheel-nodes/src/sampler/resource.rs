@@ -19,8 +19,6 @@ pub enum SamplerNodeResource {
     /// (i.e. sound effects).
     InMemory(ArcGc<dyn SampleResource + Send + Sync + 'static>),
 
-    /// NOT IMPLEMENTED YET! Will lead to a panic if used.
-    ///
     /// A resource of audio samples that are streamed from disk or over a network.
     ///
     /// Prefer this for resources which are greater than 20 or so seconds long
